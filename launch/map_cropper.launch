@@ -1,0 +1,3 @@
+<launch>
+	<node name="croppernode" pkg="nautonomous_map_cropper" type="croppernode.py"  output="screen" />
+</launch>
