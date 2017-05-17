@@ -15,15 +15,26 @@ project_path = os.path.abspath(os.path.join(os.path.split(__file__)[0], os.pardi
 
 pub = rospy.Publisher('cropper_map_gps', Float32MultiArray, queue_size=10)
 
-map_latitude = 52.364998
-map_longitude = 4.879421
+map_latitude = 0.0
+map_longitude = 0.0
 
-current_latitude = 52.366734
-current_longitude = 4.877543
+current_latitude = 0.0
+current_longitude = 0.0
+
+cropping = False
+fill_initial_coord = True
+initial_lat = 0.0
+initial_lon = 0.0
 
 
 def gpsFixCallback(data):
-	global current_latitude, current_longitude, map_latitude, map_longitude
+	global current_latitude, current_longitude, map_latitude, map_longitude, cropping, fill_initial_coord, initial_lat, initial_lon
+
+	if fill_initial_coord:
+		initial_lat = data.latitude
+		initial_lon = data.longitude
+		fill_initial_coord = False
+
 	current_longitude = data.longitude
 	current_latitude = data.latitude
 
@@ -33,13 +44,18 @@ def gpsFixCallback(data):
 	x_diff = utm_map_position[0] - utm_current_position[0]
 	y_diff = utm_map_position[1] - utm_current_position[1]
 	abs_diff = sqrt(x_diff * x_diff + y_diff * y_diff)
-	#print "Diff abs: ", int(abs_diff)
-	if abs_diff > 200:
+
+	if abs_diff > 200 and not cropping and (initial_lat != data.latitude and initial_lon != data.longitude):
 		crop()
 
 
 
 def crop():
+	global map_latitude, map_longitude, cropping
+	cropping = True
+
+	print "cropping started"
+
 	with open(project_path + "/config/total.yaml") as f:
 		map_data = yaml.safe_load(f)
 
@@ -94,8 +110,6 @@ def crop():
 	#Also safe in config package
 	cropped_example.save(os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.png")
 
-	print "cropped";
-
 	map_data["image"] = "amsterdam_cropped.png"
 	map_data["origin"] = [((top - bottom) / (2 * margin_multiplier)), ((left - right) / (2 * margin_multiplier)), 0.0]
 	map_data["gps_origin"] = [current_latitude, current_longitude]
@@ -117,6 +131,9 @@ def crop():
 
 	#restart map server(?)
 	os.system("rosrun map_server map_server " + os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml&")
+	
+	print "cropping finished"
+	cropping = False
 
 
 def main():
@@ -126,13 +143,12 @@ def main():
 	sub = rospy.Subscriber("gps/fix", NavSatFix, gpsFixCallback)
 	os.system("rosrun map_server map_server " + os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml&")
 
-	location = [52.404601, 4.863270]
-
-	current_latitude = location[0]
-	current_longitude = location[1]
-	map_latitude = location[0]
-	map_longitude = location[1]
-	crop()
+	#location = [52.371909, 4.866858]
+	#current_latitude = location[0]
+	#current_longitude = location[1]
+	#map_latitude = location[0]
+	#map_longitude = location[1]
+	#crop()
 
 	rospy.spin()
 
