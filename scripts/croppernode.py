@@ -46,13 +46,14 @@ def gpsFixCallback(data):
 	abs_diff = sqrt(x_diff * x_diff + y_diff * y_diff)
 
 	if abs_diff > 200 and not cropping and (initial_lat != data.latitude and initial_lon != data.longitude):
+		cropping = True
 		crop()
+		cropping = False
 
 
 
 def crop():
-	global map_latitude, map_longitude, cropping
-	cropping = True
+	global map_latitude, map_longitude, current_latitude, current_longitude
 
 	print "cropping started"
 
@@ -133,7 +134,6 @@ def crop():
 	os.system("rosrun map_server map_server " + os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml&")
 	
 	print "cropping finished"
-	cropping = False
 
 
 def main():
@@ -143,7 +143,7 @@ def main():
 	sub = rospy.Subscriber("gps/fix", NavSatFix, gpsFixCallback)
 	os.system("rosrun map_server map_server " + os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml&")
 
-	#location = [52.371909, 4.866858]
+	#location = [52.40568, 4.86406]
 	#current_latitude = location[0]
 	#current_longitude = location[1]
 	#map_latitude = location[0]
