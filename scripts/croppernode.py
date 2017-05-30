@@ -6,14 +6,15 @@ import utm
 import os
 import yaml
 import gps_common
+import dynamic_reconfigure.client
 
 from sensor_msgs.msg import NavSatFix
 from math import sqrt
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32MultiArray, String
 
 project_path = os.path.abspath(os.path.join(os.path.split(__file__)[0], os.pardir))
 
-pub = rospy.Publisher('cropper_map_gps', Float32MultiArray, queue_size=10)
+pub_new_map = rospy.Publisher('map_cropper/new_map', String, queue_size=10)
 
 map_latitude = 0.0
 map_longitude = 0.0
@@ -57,7 +58,7 @@ def crop():
 
 	print "cropping started"
 
-	with open(project_path + "/config/total.yaml") as f:
+	with open(project_path + "/config/amsterdam_total.yaml") as f:
 		map_data = yaml.safe_load(f)
 
 	utm_val = utm.from_latlon(current_latitude, current_longitude)	
@@ -124,15 +125,10 @@ def crop():
 	map_latitude = current_latitude
 	map_longitude = current_longitude	
 
-	map_center_values = Float32MultiArray()
-	map_center_values.data.insert(0, map_latitude)
-	map_center_values.data.insert(1, map_longitude)
+	msg = String()
+	msg.data = os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml"
+	pub_new_map.publish(msg)
 
-	pub.publish(map_center_values)
-
-	#restart map server(?)
-	os.system("rosrun map_server map_server " + os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml&")
-	
 	print "cropping finished"
 
 
@@ -140,15 +136,18 @@ def main():
 	global current_latitude, current_longitude, map_latitude, map_longitude
 
 	rospy.init_node('map_cropper')
+	
 	sub = rospy.Subscriber("gps/fix", NavSatFix, gpsFixCallback)
-	os.system("rosrun map_server map_server " + os.path.dirname(project_path) + "/nautonomous_configuration/config/map_amsterdam/amsterdam_cropped.yaml&")
-
-	#location = [52.40568, 4.86406]
+	
+	# <!-- Simulation, forced cropping
+	#location = [52.341726, 4.915569]
 	#current_latitude = location[0]
 	#current_longitude = location[1]
 	#map_latitude = location[0]
 	#map_longitude = location[1]
+	#rospy.sleep(15.)
 	#crop()
+	# -->
 
 	rospy.spin()
 
