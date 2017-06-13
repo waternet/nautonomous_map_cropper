@@ -1,0 +1,10 @@
+free_thresh: 0.196
+image: /images/amsterdam_cropped_1442.png
+map_bottom: 5803383.951087602
+map_left: 628139.9581262376
+map_right: 628379.4538009652
+map_top: 5803568.60366646
+negate: 0
+occupied_thresh: 0.65
+origin: [628139.9581262376, 5803383.951087602, 0.0]
+resolution: 0.5

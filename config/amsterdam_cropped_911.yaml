@@ -1,0 +1,10 @@
+free_thresh: 0.196
+image: /images/amsterdam_cropped_911.png
+map_bottom: 5804796.133857917
+map_left: 627433.8466821425
+map_right: 627593.2898481428
+map_top: 5805051.69868573
+negate: 0
+occupied_thresh: 0.65
+origin: [627433.8466821425, 5804796.133857917, 0.0]
+resolution: 0.5

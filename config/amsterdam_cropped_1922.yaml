@@ -1,0 +1,10 @@
+free_thresh: 0.196
+image: /images/amsterdam_cropped_1922.png
+map_bottom: 5804749.089693259
+map_left: 627786.9032426099
+map_right: 627969.3379707182
+map_top: 5805233.289904778
+negate: 0
+occupied_thresh: 0.65
+origin: [627786.9032426099, 5804749.089693259, 0.0]
+resolution: 0.5
