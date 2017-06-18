@@ -1,10 +1,14 @@
 
 import math
+import rospy
 
 from PIL import Image
 import yaml
 
 from passive_map_cropper_node import project_path
+from geometry_msgs.msg import Pose2D
+
+from passive_map_cropper_node import publish_initial_position
 
 original_image = None
 
@@ -71,6 +75,7 @@ def extract_cropped_image_positions(map_data, nodes):
 	resolution = map_data["resolution"]
 	map_left = map_data["map_left"]
 	map_top = map_data["map_top"]
+	map_bottom = map_data["map_bottom"]
 
     # Get the transformed nodes in the full image frame
 	nodes_x = []
@@ -79,6 +84,8 @@ def extract_cropped_image_positions(map_data, nodes):
 		nodes_x.append(node.x - map_left)
 		nodes_y.append(map_top - node.y)
 
+	publish_initial_position(nodes[0].x, nodes[0].y, 0);
+	
     #TODO add the theta parameter to more efficiently crop the image.
 	# edge_width = abs(first_node_x - second_node_x)
 	# edge_height = abs(first_node_y - second_node_y)
@@ -150,12 +157,17 @@ def save_cropped_image(original_image, file_name, resolution, left_position, rig
 # Save config file based on the cropped positions
 def save_config_file(file_name, map_data, left_position, right_position, bottom_position, top_position):
 	# create cropped config file
+	map_left = map_data["map_left"]
+	map_right = map_data["map_right"]
+	map_bottom = map_data["map_bottom"]
+	map_top = map_data["map_top"]
+
 	map_data["map_left"] = left_position
 	map_data["map_right"] = right_position
 	map_data["map_bottom"] = bottom_position
 	map_data["map_top"] = top_position
 	map_data["image"] = "/images/amsterdam_cropped_" + str(file_name) + ".png"
-	map_data["origin"] = [map_data["map_left"], map_data["map_bottom"], 0.0]
+	map_data["origin"] = [left_position+map_left, (map_top - map_bottom) - bottom_position + map_bottom, 0.0]
 
     # Save the image and config name
 	image_file_name = project_path + map_data["image"]
