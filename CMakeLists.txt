@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   nautonomous_map_msgs
+  nautonomous_configuration
 )
 
 include_directories(
