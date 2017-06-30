@@ -13,13 +13,14 @@ rospack = rospkg.RosPack()
 nautonomous_configuration_path = rospack.get_path('nautonomous_configuration')
 
 original_image = None
-image_name = "amsterdam"
+original_name = "amsterdam"
 
 # Load the entire image of amsterdam so we can use it to crop it.
-def load_full_image():
-    global original_image
-    full_image_string = nautonomous_configuration_path + "/config/map/"+ str(image_name) + ".png"
-    original_image = Image.open(full_image_string)
+def load_original_image(image_name):
+	global original_image, original_name
+	original_name = image_name
+	full_image_string = nautonomous_configuration_path + "/config/map/"+ str(original_name) + ".png"
+	original_image = Image.open(full_image_string)
 
 # Crop the map using a list of points
 def crop_map_points(points,	name_map):
@@ -36,8 +37,9 @@ def crop_map_points(points,	name_map):
     return image_file_name, config_file_name
 
 # Open the config file from the original image
-def open_config_file():
-	with open(nautonomous_configuration_path + "/config/map/" + str(image_name) + ".yaml") as f:
+def open_original_config_file():
+	global original_name
+	with open(nautonomous_configuration_path + "/config/map/" + str(original_name) + ".yaml") as f:
 		map_data = yaml.safe_load(f)
 	return map_data
 
@@ -85,7 +87,7 @@ def save_cropped_image(original_image, file_name, resolution, left_position, rig
 			int(bottom_position / resolution)
 		)
 	)
-	cropped_example.save(nautonomous_configuration_path + "/config/map/" + str(image_name) + "_cropped_" + str(file_name) + ".png")
+	cropped_example.save(nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".png")
 
 # Save config file based on the cropped positions
 def save_config_file(file_name, map_data, left_position, right_position, bottom_position, top_position):
@@ -99,16 +101,15 @@ def save_config_file(file_name, map_data, left_position, right_position, bottom_
 	map_data["map_right"] = right_position
 	map_data["map_bottom"] = bottom_position
 	map_data["map_top"] = top_position
-	map_data["image"] = str(image_name) + "_cropped_" + str(file_name) + ".png"
+	map_data["image"] = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".png"
 	map_data["origin"] = [left_position+map_left, (map_top - map_bottom) - bottom_position + map_bottom, 0.0]
 
     # Save the image and config name
-	image_file_name = nautonomous_configuration_path + "/config/map/" + str(image_name) + "_cropped_" + str(file_name) + ".png"
-	config_file_name = nautonomous_configuration_path + "/config/map/" + str(image_name) + "_cropped_" + str(file_name) + ".yaml"
+	config_name = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".yaml"
  
     # Open the config file and dump the data
-	with open(config_file_name, "w") as f:
+	with open(config_name, "w") as f:
 		yaml.dump(map_data, f)
 
     # return the image and config file name
-	return image_file_name, config_file_name
+	return config_name

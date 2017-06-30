@@ -18,10 +18,13 @@ def main():
 	global initial_pose_pub
 	rospy.init_node('passive_map_cropper_node')
 
-	print "Passive map cropper"
-	image_cropper.load_full_image()
+	original_image_name = rospy.get_param('~original_image_name', 50)
 
-	s = rospy.Service('/map/cropper/crop', Crop, crop_map_points_service)
+
+	print "Passive map cropper"
+	image_cropper.load_original_image(original_image_name)
+
+	s = rospy.Service('map_crop_service', Crop, crop_map_points_service)
 
 	rospy.spin()
 
