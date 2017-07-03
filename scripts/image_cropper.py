@@ -15,6 +15,9 @@ nautonomous_configuration_path = rospack.get_path('nautonomous_configuration')
 original_image = None
 original_name = "amsterdam"
 
+negate_image = False
+
+
 # Load the entire image of amsterdam so we can use it to crop it.
 def load_original_image(image_name):
 	global original_image, original_name
@@ -25,6 +28,8 @@ def load_original_image(image_name):
 # Crop the map using a list of points
 def crop_map_points(points,	name_map):
     global original_image
+	
+    negate_image = rospy.get_param('~negate_image_param', False)
 
     map_data = open_config_file()
     # extract the position of the cropped map
@@ -103,7 +108,10 @@ def save_config_file(file_name, map_data, left_position, right_position, bottom_
 	map_data["map_top"] = top_position
 	map_data["image"] = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".png"
 	map_data["origin"] = [left_position+map_left, (map_top - map_bottom) - bottom_position + map_bottom, 0.0]
-
+	if negate_image:
+		map_data["negate"] = 1
+	else:
+		map_data["negate"] = 0
     # Save the image and config name
 	config_name = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".yaml"
  
