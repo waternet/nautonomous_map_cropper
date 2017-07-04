@@ -10,9 +10,9 @@ import image_cropper
 
 # Create the service so other nodes can request to crop the map.
 def crop_map_points_service(request):
-	image_name, config_name = image_cropper.crop_map_points(request.route, request.name)
+	config_name = image_cropper.crop_map_points(request.route, request.name)
 
-  	return CropResponse(image_name, config_name)
+  	return CropResponse(config_name)
 	
 def main():
 	global initial_pose_pub
@@ -24,7 +24,7 @@ def main():
 	print "Passive map cropper"
 	image_cropper.load_original_image(original_image_name)
 
-	s = rospy.Service('map_crop_service', Crop, crop_map_points_service)
+	s = rospy.Service('crop_service', Crop, crop_map_points_service)
 
 	rospy.spin()
 

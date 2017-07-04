@@ -27,19 +27,19 @@ def load_original_image(image_name):
 
 # Crop the map using a list of points
 def crop_map_points(points,	name_map):
-    global original_image
+    global original_image, negate_image
 	
     negate_image = rospy.get_param('~negate_image_param', False)
-
-    map_data = open_config_file()
+    print "NEGATE " + str(negate_image)
+    map_data = open_original_config_file()
     # extract the position of the cropped map
     resolution, left_position, right_position, bottom_position, top_position = extract_cropped_image_positions(map_data, points)
     # save the cropper image based on the positions
     save_cropped_image(original_image, name_map, resolution, left_position, right_position, bottom_position, top_position)
     # save the config file based on the positions
-    image_file_name, config_file_name =  save_config_file(name_map, map_data, left_position, right_position, bottom_position, top_position)
+    config_file_name =  save_config_file(name_map, map_data, left_position, right_position, bottom_position, top_position)
 
-    return image_file_name, config_file_name
+    return config_file_name
 
 # Open the config file from the original image
 def open_original_config_file():
@@ -108,10 +108,13 @@ def save_config_file(file_name, map_data, left_position, right_position, bottom_
 	map_data["map_top"] = top_position
 	map_data["image"] = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".png"
 	map_data["origin"] = [left_position+map_left, (map_top - map_bottom) - bottom_position + map_bottom, 0.0]
+	negate_image_value = 0
 	if negate_image:
-		map_data["negate"] = 1
-	else:
-		map_data["negate"] = 0
+		print "set NEGATE 1"
+		negate_image_value = 1
+
+	map_data["negate"] = negate_image_value
+
     # Save the image and config name
 	config_name = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".yaml"
  
