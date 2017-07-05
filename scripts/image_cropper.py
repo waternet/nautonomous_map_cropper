@@ -1,72 +1,50 @@
 
 import math
 import rospy
+import rospkg
 
 from PIL import Image
 import yaml
 
-from passive_map_cropper_node import project_path
 from geometry_msgs.msg import Pose2D
 
-from passive_map_cropper_node import publish_initial_position
+rospack = rospkg.RosPack()
+
+nautonomous_configuration_path = rospack.get_path('nautonomous_configuration')
 
 original_image = None
-image_name = "amsterdam"
+original_name = "amsterdam"
+
+negate_image = False
+
 
 # Load the entire image of amsterdam so we can use it to crop it.
-def load_full_image():
-    global original_image
-    full_image_string = project_path + "/images/"+ str(image_name) + ".png"
-    original_image = Image.open(full_image_string)
-
-# def crop_map_edge(edge):
-# 	print "crop map edge: " + str(edge)
-
-# 	traffic_id = getTrafficId(edge)
-
-# 	map_data = open_config_file()
-
-# 	first_node = getNode(edge[0])
-# 	second_node = getNode(edge[1])
-
-# 	resolution, left_position, right_position, bottom_position, top_position = extract_cropped_image_position(map_data, first_node, second_node)
-# 	save_cropped_image(traffic_id, resolution, left_position, right_position, bottom_position, top_position)
-# 	save_config_file(traffic_id, map_data, left_position, right_position, bottom_position, top_position)
-
-# def crop_maps():
-# 	i = 0
-# 	for edge in G.edges():
-# 		print str((i+1)) + "/" + str(len(G.edges())) + ": " + str(edge)
-# 		i = i + 1
-# 		crop_map_edge(edge)
-
-# def crop_map(first_node, second_node):
-# 	print "crop map: " + str(first_node) + " " + str(second_node)
-# 	traffic_id = getTrafficId(edge)
-
-# 	map_data = open_config_file()
-
-# 	resolution, left_position, right_position, bottom_position, top_position = extract_cropped_image_position(map_data, first_node, second_node)
-# 	save_cropped_image(traffic_id, resolution, left_position, right_position, bottom_position, top_position)
-# 	save_config_file(traffic_id, map_data, left_position, right_position, bottom_position, top_position)
+def load_original_image(image_name):
+	global original_image, original_name
+	original_name = image_name
+	full_image_string = nautonomous_configuration_path + "/config/map/"+ str(original_name) + ".png"
+	original_image = Image.open(full_image_string)
 
 # Crop the map using a list of points
 def crop_map_points(points,	name_map):
-    global original_image
-
-    map_data = open_config_file()
+    global original_image, negate_image
+	
+    negate_image = rospy.get_param('~negate_image_param', False)
+    print "NEGATE " + str(negate_image)
+    map_data = open_original_config_file()
     # extract the position of the cropped map
     resolution, left_position, right_position, bottom_position, top_position = extract_cropped_image_positions(map_data, points)
     # save the cropper image based on the positions
     save_cropped_image(original_image, name_map, resolution, left_position, right_position, bottom_position, top_position)
     # save the config file based on the positions
-    image_file_name, config_file_name =  save_config_file(name_map, map_data, left_position, right_position, bottom_position, top_position)
+    config_file_name =  save_config_file(name_map, map_data, left_position, right_position, bottom_position, top_position)
 
-    return image_file_name, config_file_name
+    return config_file_name
 
 # Open the config file from the original image
-def open_config_file():
-	with open(project_path + "/config/"+ str(image_name) + ".yaml") as f:
+def open_original_config_file():
+	global original_name
+	with open(nautonomous_configuration_path + "/config/map/" + str(original_name) + ".yaml") as f:
 		map_data = yaml.safe_load(f)
 	return map_data
 
@@ -84,8 +62,6 @@ def extract_cropped_image_positions(map_data, nodes):
 	for node in nodes:
 		nodes_x.append(node.x - map_left)
 		nodes_y.append(map_top - node.y)
-
-	publish_initial_position(nodes[0].x, nodes[0].y, 0);
 	
     #TODO add the theta parameter to more efficiently crop the image.
 	# edge_width = abs(first_node_x - second_node_x)
@@ -98,49 +74,12 @@ def extract_cropped_image_positions(map_data, nodes):
 	margin = 50 # magic 50 meters boundary
 
 	# find rectangle that fits the path
-	print "Nodes: " + str(min(nodes_x)) + " " + str(max(nodes_x)) + " " + str(max(nodes_y)) + " " + str(min(nodes_y))
 	left_position = min(nodes_x) - margin
 	right_position = max(nodes_x) + margin
 	bottom_position = max(nodes_y) + margin
 	top_position = min(nodes_y) - margin
 
-	return resolution, left_position, right_position, bottom_position, top_position 
-
-# def extract_cropped_image_position(map_data, first_node, second_node):
-
-# 	resolution = map_data["resolution"]
-# 	map_left = map_data["map_left"]
-# 	map_right = map_data["map_right"]
-# 	map_bottom = map_data["map_bottom"]
-# 	map_top = map_data["map_top"]
-
-# 	map_width = map_right - map_left
-# 	map_height = map_top - map_bottom
-
-# 	first_node_x = (first_node.easting - map_left)
-# 	first_node_y = (map_top - first_node.northing)
-# 	#print "First: " + str(first_node_x) + " " + str(first_node_y)
-
-# 	second_node_x = (second_node.easting - map_left)
-# 	second_node_y = (map_top - second_node.northing)
-# 	#print "Second: " + str(second_node_x) + " " + str(second_node_y)
-
-# 	edge_width = abs(first_node_x - second_node_x)
-# 	edge_height = abs(first_node_y - second_node_y)
-# 	theta = math.atan2( edge_height, edge_width)
-# 	#print "Theta: " + str(theta)
-# 	# margin for top, left, bottom and right
-# 	margin = 50 # magic 50 meters boundary
-
-# 	# find rectangle that fits the path
-# 	left_position = min(first_node_x,second_node_x) - margin
-# 	right_position = max(first_node_x,second_node_x) + margin
-# 	bottom_position = max(first_node_y, second_node_y) + margin
-# 	top_position = min(first_node_y, second_node_y) - margin
-
-# 	#print "Pixels: x: " + str(left_pixel) + " y: " + str(right_pixel) + " b: " + str(bottom_pixel) + " t: " + str(top_pixel)  
-
-# 	return resolution, left_position, right_position, bottom_position, top_position 
+	return resolution, left_position, right_position, bottom_position, top_position
 
 # Save the cropped image based on the cropped positions
 def save_cropped_image(original_image, file_name, resolution, left_position, right_position, bottom_position, top_position):
@@ -153,7 +92,7 @@ def save_cropped_image(original_image, file_name, resolution, left_position, rig
 			int(bottom_position / resolution)
 		)
 	)
-	cropped_example.save(project_path + "/images/"+ str(image_name) + "_cropped_" + str(file_name) + ".png")
+	cropped_example.save(nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".png")
 
 # Save config file based on the cropped positions
 def save_config_file(file_name, map_data, left_position, right_position, bottom_position, top_position):
@@ -167,16 +106,21 @@ def save_config_file(file_name, map_data, left_position, right_position, bottom_
 	map_data["map_right"] = right_position
 	map_data["map_bottom"] = bottom_position
 	map_data["map_top"] = top_position
-	map_data["image"] = "/images/"+ str(image_name) + "_cropped_" + str(file_name) + ".png"
+	map_data["image"] = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".png"
 	map_data["origin"] = [left_position+map_left, (map_top - map_bottom) - bottom_position + map_bottom, 0.0]
+	negate_image_value = 0
+	if negate_image:
+		print "set NEGATE 1"
+		negate_image_value = 1
+
+	map_data["negate"] = negate_image_value
 
     # Save the image and config name
-	image_file_name = project_path + map_data["image"]
-	config_file_name = project_path + "/config/"+ str(image_name) + "_cropped_" + str(file_name) + ".yaml"
+	config_name = nautonomous_configuration_path + "/config/map/" + str(original_name) + "_cropped_" + str(file_name) + ".yaml"
  
     # Open the config file and dump the data
-	with open(config_file_name, "w") as f:
+	with open(config_name, "w") as f:
 		yaml.dump(map_data, f)
 
     # return the image and config file name
-	return image_file_name, config_file_name
+	return config_name
