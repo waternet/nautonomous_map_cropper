@@ -19,10 +19,11 @@ def main():
 	rospy.init_node('passive_map_cropper_node')
 
 	original_image_name = rospy.get_param('~original_image_name', 50)
+	test = rospy.get_param('~test_map_param', 50)
 
 
 	print "Passive map cropper"
-	image_cropper.load_original_image(original_image_name)
+	image_cropper.load_original_image(original_image_name, test)
 
 	s = rospy.Service('crop_service', Crop, crop_map_points_service)
 

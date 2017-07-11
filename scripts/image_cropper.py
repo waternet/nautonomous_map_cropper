@@ -17,21 +17,31 @@ original_name = "amsterdam"
 
 negate_image = False
 
+map_data = None
+
 
 # Load the entire image of amsterdam so we can use it to crop it.
-def load_original_image(image_name):
-	global original_image, original_name
+def load_original_image(image_name, test):
+	global original_image, original_name, map_data
+
 	original_name = image_name
-	full_image_string = nautonomous_configuration_path + "/config/map/"+ str(original_name) + ".png"
+	print "test is " + str(test)
+	if test:
+		original_name = image_name + "_test"
+
+	full_image_string = nautonomous_configuration_path + "/config/map/" + original_name + ".png"
+	print "original name1 " + original_name
+		
 	original_image = Image.open(full_image_string)
+
+	map_data = open_original_config_file()
 
 # Crop the map using a list of points
 def crop_map_points(points,	name_map):
-    global original_image, negate_image
+    global original_image, negate_image, map_data
 	
     negate_image = rospy.get_param('~negate_image_param', False)
     print "NEGATE " + str(negate_image)
-    map_data = open_original_config_file()
     # extract the position of the cropped map
     resolution, left_position, right_position, bottom_position, top_position = extract_cropped_image_positions(map_data, points)
     # save the cropper image based on the positions
@@ -44,8 +54,12 @@ def crop_map_points(points,	name_map):
 # Open the config file from the original image
 def open_original_config_file():
 	global original_name
+	print "original name2 " + original_name
+
 	with open(nautonomous_configuration_path + "/config/map/" + str(original_name) + ".yaml") as f:
 		map_data = yaml.safe_load(f)
+	
+	print "open original " + str(map_data["map_left"]) + " " + str(map_data["map_top"]) + " " + str(map_data["map_bottom"])
 	return map_data
 
 # Extract the cropped image positions based on the positions of the nodes in the map.
@@ -57,6 +71,7 @@ def extract_cropped_image_positions(map_data, nodes):
 	map_bottom = map_data["map_bottom"]
 
     # Get the transformed nodes in the full image frame
+	print "nodes " + str(nodes)
 	nodes_x = []
 	nodes_y = []
 	for node in nodes:
@@ -78,6 +93,8 @@ def extract_cropped_image_positions(map_data, nodes):
 	right_position = max(nodes_x) + margin
 	bottom_position = max(nodes_y) + margin
 	top_position = min(nodes_y) - margin
+
+	print "positions " + str(left_position) + ", " + str(right_position) + ", " + str(bottom_position) + ", " + str(top_position)
 
 	return resolution, left_position, right_position, bottom_position, top_position
 
