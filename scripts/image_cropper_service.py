@@ -1,3 +1,5 @@
+import os
+
 import rospy
 import rospkg
 
@@ -15,7 +17,7 @@ class ImageCropperService:
 	image_file_extension_ = ".png"
 	config_file_extension_ = ".yaml"
 
-	map_folder_ = "/config/map/"
+	map_folder_ = "/config/navigation/map/"
 	file_name_adjustment_ = "_cropped_"
 
 	# map
@@ -34,6 +36,7 @@ class ImageCropperService:
 	def load_map_image(self):
 		
 		full_image_string = nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.image_file_extension_
+		print full_image_string
 		return Image.open(full_image_string)
 
 	# Create the service so other nodes can request to crop the map.
@@ -41,6 +44,11 @@ class ImageCropperService:
 
 		route = request.route
 		name_map = request.name
+
+		config_name = nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.file_name_adjustment_ + name_map + self.config_file_extension_
+		if(os.path.isfile(config_name)):
+			print "Config already exists, returning existing configuration file."
+			return CropResponse(config_name)
 	
 		map_data_ = self.open_map_config_file()
 
