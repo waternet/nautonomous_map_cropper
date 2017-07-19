@@ -127,7 +127,7 @@ class ImageCropperService:
 		map_data_["map_right"] = right_position
 		map_data_["map_bottom"] = bottom_position
 		map_data_["map_top"] = top_position
-		map_data_["image"] = nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.file_name_adjustment_ + name_map + self.image_file_extension_
+		map_data_["image"] = self.map_name_ + self.file_name_adjustment_ + name_map + self.image_file_extension_
 		map_data_["origin"] = [left_position + map_left, map_top - bottom_position, 0.0]
 		
 		negate_image_value = 0
