@@ -1,14 +1,14 @@
 <launch>
-	<arg name="rosbag_enabled" default="false"/>
-	<arg name="rosbag_prefix_url" default="/tmp"/>
 
 	<arg name="negate_image_param" default="false"/>
+	<arg name="test_map_param" default="false"/>
+	<arg name="map_image_name_param" default="amsterdam"/>
 
-	<arg name="crop_service" default="crop_service"/>
+	<arg name="crop_service" default="crop"/>
 	
 	<node name="nautonomous_cropper_node" pkg="nautonomous_map_cropper" type="image_cropper_node.py"  output="screen" >
-		<param name="original_image_name" value="amsterdam"/>
 		<param name="negate_image_param" value="$(arg negate_image_param)"/>
+		<param name="map_image_name_param" value="$(arg map_image_name_param)"/>
 
 		<remap from="crop_service" to="$(arg crop_service)"/>
 	</node>

@@ -1,32 +1,36 @@
 #!/usr/bin/env python
 
+import sys
+# Prevent pyc files being generated!
+sys.dont_write_bytecode = True
+
 from PIL import Image
 import rospy
 
+from image_cropper_service import ImageCropperService
+from nautonomous_map_msgs.srv import Crop
+
 from geometry_msgs.msg import Pose2D
-from nautonomous_map_msgs.srv import Crop, CropResponse
 
-import image_cropper	
-
-# Create the service so other nodes can request to crop the map.
-def crop_map_points_service(request):
-	config_name = image_cropper.crop_map_points(request.route, request.name)
-
-  	return CropResponse(config_name)
+## debug
+class DebugRequest():
+	#route = [Pose2D(628329,5803523,0), Pose2D(628649, 5803234,0), Pose2D(629094, 5803149,0), Pose2D(629497,5803283,0)]
+	route = [Pose2D(628329, 5803523, 0), Pose2D(628649, 5803232, 0), Pose2D(628649, 5803232, 0), Pose2D(629095, 5803152, 0)]
 	
-def main():
-	global initial_pose_pub
-	rospy.init_node('passive_map_cropper_node')
-
-	original_image_name = rospy.get_param('~original_image_name', 50)
-
-
-	print "Passive map cropper"
-	image_cropper.load_original_image(original_image_name)
-
-	s = rospy.Service('crop_service', Crop, crop_map_points_service)
-
-	rospy.spin()
+	name = "debug_rotated"
 
 if __name__ == '__main__':
-	main()
+	rospy.init_node('image_cropper_node')
+
+	# Create the Image Cropper Service
+	image_cropper_service = ImageCropperService()
+
+	# Link the execute service function to the cropping service.
+	s = rospy.Service('crop', Crop, image_cropper_service.execute_service)
+	
+	debug_request = DebugRequest()
+	image_cropper_service.execute_service(debug_request)
+
+	print "cropped"
+
+	rospy.spin()
