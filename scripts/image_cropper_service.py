@@ -70,7 +70,7 @@ class ImageCropperService:
 			nodes_y.append(map_top - node.y)
 
 		# margin for top, left, bottom and right
-		margin = 50 # magic 50 meters boundary
+		margin = 25 # magic 50 meters boundary
 
 		# find rectangle that fits the path
 		left_position = min(nodes_x) - margin
@@ -157,7 +157,7 @@ class ImageCropperService:
 		self.map_data_["image"] = self.map_name_ + self.file_name_adjustment_ + name_map + self.image_file_extension_
 		self.map_data_["origin"] = [bottom_left_point.original_point().x(), bottom_left_point.original_point().y(), theta]
 		
-		self.map_data_["negate"] = int(self.negate_image_ == 'true') # turns boolean into int (false -> 0 and true -> 1)
+		self.map_data_["negate"] = int(self.negate_image_) # turns boolean into int (false -> 0 and true -> 1)
 
 		# Save the image and config name
 		config_name = nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.file_name_adjustment_ + name_map + self.config_file_extension_
