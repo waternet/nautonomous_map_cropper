@@ -89,10 +89,11 @@ class ImageCropperService:
 		rectangular = request.rectangular
 
 		config_name = nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.file_name_adjustment_ + name_map + self.config_file_extension_
+		print config_name
 		if(os.path.isfile(config_name)):
 			rospy.loginfo("Image Cropper: Config " + config_name + " already exists, returning existing configuration file.")
 			return CropResponse(config_name)
-
+    
 		if not rectangular:
 			# extract the position of the cropped map
 			theta = self.map_image_coordinate_system_.cropped_image_positions(route)
