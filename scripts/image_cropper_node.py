@@ -27,10 +27,5 @@ if __name__ == '__main__':
 
 	# Link the execute service function to the cropping service.
 	s = rospy.Service('crop', Crop, image_cropper_service.execute_service)
-	
-	debug_request = DebugRequest()
-	image_cropper_service.execute_service(debug_request)
-
-	print "cropped"
 
 	rospy.spin()

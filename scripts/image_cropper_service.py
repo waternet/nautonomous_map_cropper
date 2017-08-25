@@ -57,6 +57,7 @@ class ImageCropperService:
 		name_map = request.name
 
 		config_name = nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.file_name_adjustment_ + name_map + self.config_file_extension_
+		print config_name
 		if(os.path.isfile(config_name)):
 			rospy.loginfo("Image Cropper: Config already exists, returning existing configuration file.")
 			return CropResponse(config_name)
@@ -69,13 +70,13 @@ class ImageCropperService:
 		#self.save_cropped_image(name_map + "_initial", initial_cropped_image)
 		rotated_image = self.map_image_coordinate_system_.rotate(-theta)
 		#self.save_cropped_image(name_map + "_rotated", rotated_image)
-	 	final_cropped_image, top_left_point = self.map_image_coordinate_system_.final_crop()
+	 	final_cropped_image, bottom_left_point = self.map_image_coordinate_system_.final_crop()
 
 		# Save cropped image
 		self.save_cropped_image(name_map, final_cropped_image)
 
 		# save the config file based on the positions
-		config_file_name =  self.save_config_file(name_map, top_left_point, theta)
+		config_file_name =  self.save_config_file(name_map, bottom_left_point, theta)
 
 		return CropResponse(config_file_name)
 
@@ -90,14 +91,14 @@ class ImageCropperService:
 		image.save(nautonomous_configuration_path + self.map_folder_ + self.map_name_ + self.file_name_adjustment_ + name_map + self.image_file_extension_)
 
 	# Save config file based on the cropped positions
-	def save_config_file(self, name_map, top_left_point, theta):
+	def save_config_file(self, name_map, bottom_left_point, theta):
 		del self.map_data_["map_left"]
 		del self.map_data_["map_right"]
 		del self.map_data_["map_bottom"]
 		del self.map_data_["map_top"]
 
 		self.map_data_["image"] = self.map_name_ + self.file_name_adjustment_ + name_map + self.image_file_extension_
-		self.map_data_["origin"] = [top_left_point.original_point().x(), top_left_point.original_point().y(), theta]
+		self.map_data_["origin"] = [bottom_left_point.original_point().x(), bottom_left_point.original_point().y(), theta]
 		
 		self.map_data_["negate"] = int(self.negate_image_ == 'true') # turns boolean into int (false -> 0 and true -> 1)
 
